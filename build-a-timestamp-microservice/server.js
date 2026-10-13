@@ -1,21 +1,32 @@
-import express from "express";
-import cors from "cors";
+import express from 'express';
+import cors from 'cors';
 
 const app = express();
 
 app.use(cors({ optionsSuccessStatus: 200 }));
 
-app.use(express.static("public"));
+const handler = (req, res) => {
+  const { date } = req.params;
+  let d;
 
-app.get("/", (_req, res) => {
-  res.sendFile(import.meta.dirname + "/views/index.html");
-});
+  if (date === undefined || date === '') {
+    d = new Date();
+  } else if (/^-?\d+$/.test(date)) {
+    d = new Date(Number(date));
+  } else {
+    d = new Date(date);
+  }
 
-// Do not change code above this line
+  if (isNaN(d.getTime())) {
+    return res.json({ error: 'Invalid Date' });
+  }
 
-// Do not change code below this line
+  res.json({ unix: d.getTime(), utc: d.toUTCString() });
+};
 
-const PORT = 8000;
-const listener = app.listen(PORT, function () {
-  console.log("Your app is listening on port " + listener.address().port);
+app.get('/api', handler);
+app.get('/api/:date', handler);
+
+app.listen(8000, () => {
+  console.log('Server is running on port 8000');
 });
